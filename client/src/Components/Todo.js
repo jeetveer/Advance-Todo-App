@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import AddTask from './AddTask'
 import { Link } from 'react-router-dom'
 import axios from 'axios';
+import { loginContext } from './ContextProvider/Context';
+
 
 function Todo() {
+    const { logindata } = useContext(loginContext);
     const [userNotes, setUserNotes] = useState([]);
     const [users, setUsers] = useState([]);
 
@@ -13,7 +16,7 @@ function Todo() {
 
         let token = localStorage.getItem("userToken");
 
-        axios.get("http://localhost:8000/dashboard/notes", {
+        axios.get("http://localhost:8000/userNotes", {
             headers: {
                 Authorization: token
             }
@@ -41,11 +44,13 @@ function Todo() {
         })
     }
 
+    
+
 
     //delete note
 
     const deleteNote = async (id) => {
-        await axios.delete(`http://localhost:8000/delete/${id}`)
+        await axios.delete(`http://localhost:8000/delete/${id}/${logindata._id}`)
             .then((res) => {
                 alert("successfully deleted");
                 window.location.reload();
@@ -97,7 +102,7 @@ function Todo() {
                                                     {
                                                         // eslint-disable-next-line
                                                         users.map((users) => {
-                                                            if (users._id !== note.user) {
+                                                            if (users._id !== logindata._id) {
                                                                 return (
                                                                     <div className="list-group my-3">
                                                                         <div className="list-group-item">

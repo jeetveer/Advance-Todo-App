@@ -3,30 +3,26 @@ const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema({
     name: {
-        type : "string",
+        type: "string",
         required: true
     },
     email: {
-        type : "string",
+        type: "string",
         required: true,
         unique: true
     },
     password: {
-        type : "string",
+        type: "string",
         required: true
     },
-    // notesId:[
-
-    // ]
-    // tokens: [
-    //     {
-    //         token: {
-    //             type: String,
-    //             required: true
-    //         }
-    //     }
-    // ]
-    //////
+    notesId: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Notes',
+            required: true
+        }
+    ]
+    
 })
 
 

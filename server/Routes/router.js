@@ -78,7 +78,7 @@ router.get("/dashboard", authenticate, async (req, res) => {
 })
 
 
-// User Notes 
+// User Notes making
 
 router.post('/notes', authenticate, async (req, res) => {
   const { taskname, reminder, time, description } = req.body;
@@ -89,8 +89,12 @@ router.post('/notes', authenticate, async (req, res) => {
     const userId = await usersSchema.findOne({ _id: req.userId });
 
     // Creating a new note and associate it with the user
-    const newNote = new Note({ taskname, reminder, time, description, user: userId });
+    const newNote = new Note({ taskname, reminder, time, description });
     await newNote.save();
+
+    // Push the note id to the user's notes array
+    userId.notesId.push(newNote._id);
+    await userId.save();
 
     res.status(201).json(newNote);
   } catch (error) {
@@ -100,38 +104,54 @@ router.post('/notes', authenticate, async (req, res) => {
 });
 
 
+
 // Get notes for individual user
 
-router.get('/dashboard/notes', authenticate, async (req, res) => {
-
+router.get("/userNotes", authenticate, async (req, res) => {
   try {
-    // Find the current user
-    const userId = await usersSchema.findOne({ _id: req.userId });
-
-    if (!userId) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Find all notes associated with the user
-    const userNotes = await Note.find({ user: userId });
-
-    res.status(200).json(userNotes);
-
+    //  Find the current user
+    const user = await usersSchema.findOne({ _id: req.userId });
+    // Find all notesId associated with the user
+    const notesId = user.notesId;
+    // find all notes by notesid in notes Collection
+    const notes = await Note.find({ _id: notesId });
+    res.json(notes);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 
+
+
 //Delete note
 
-router.delete("/delete/:noteId", async (req, res) => {
+router.delete("/delete/:noteId/:userId", async (req, res) => {
   try {
-    const { noteId } = req.params;
-    console.log("YE HAI = " + noteId)
+    const { noteId, userId } = req.params;
     await Note.findByIdAndDelete({ _id: noteId });
+
+
+    // Find the user document by ID
+    const user = await usersSchema.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Remove the note ID from the user's notes array
+    const index = user.notesId.indexOf(noteId);
+    if (index !== -1) {
+      user.notesId.splice(index, 1);
+    }
+
+    // Save the updated user document
+    await user.save();
+
     res.json({ message: 'Note deleted successfully' });
+
+
   } catch (error) {
     console.error('Error deleting note:', error);
     res.status(500).json({ error: 'Internal Server Error' });
