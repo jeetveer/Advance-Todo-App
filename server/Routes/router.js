@@ -5,6 +5,12 @@ const authenticate = require("../middleware/authenticate")
 const jwt = require("jsonwebtoken");
 const Note = require("../Model/notes");
 
+
+// Server START
+router.get("/", (req, res) => {
+  res.send("Hello, Node.js Server is Running!");
+});
+
 // USER REGISTER 
 
 router.post("/register", async (req, res) => {
